@@ -129,5 +129,28 @@ jobs:
     displayName: 'Delete library folders'
     timeoutInMinutes: 5
 
+# the following logic is the one used assumes that the working directory is cleaned and not in
+# and unknown state. We make a diff between those builds that have been triggered from a public
+# PR and those that are due to a commit on the release branches.
+# To do so we use the env var System.PullRequest.PullRequestNumber which is
+# the number of the pull request that caused this build.
+  - bash: |
+      set -x
+      set -e
 
-
+      PR_ID=$(System.PullRequest.PullRequestNumber)
+      cd xamarin-macios
+      if [ -z "$PR_ID" ]; then
+        echo "Xamarin private packages NOT configured. Building a PR."
+      else
+        echo "Xamarin private packages configured."
+        ./configure --enable-xamarin
+        if [[ $? = 0 ]]; then
+          echo "Xamarin private packages configured."
+        else
+          echo "Xamarin packages configuration failed."
+          echo "Configuration exit code $?"
+        fi
+      fi
+    displayName: 'Enable Xamarin private packages.'
+    timeoutInMinutes: 1
