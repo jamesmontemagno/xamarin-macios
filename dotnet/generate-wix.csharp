@@ -3,6 +3,8 @@
 // arguments are: <platform> <outputPath> <inputDirectory> <version>
 
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 
 var args = Environment.GetCommandLineArgs ();
@@ -43,20 +45,46 @@ switch (platform) {
 
 List<string> components = new List<string> ();
 
+Func<string, byte[]> GetHash = (string inputString) =>
+{
+	using (var algorithm = SHA256.Create ())
+		return algorithm.ComputeHash (Encoding.UTF8.GetBytes (inputString));
+};
+
+Func<string, string> GetHashString = (string inputString) =>
+{
+	var sb = new StringBuilder ("S", 65);
+	foreach (byte b in GetHash (inputString))
+		sb.Append (b.ToString ("X2"));
+		Console.WriteLine ($"{inputString} => {sb.ToString ()}");
+	return sb.ToString ();
+};
+
+Func<string, string> GetId = (string path) =>
+{
+	var top_dir = inputDirectory;
+	if (string.IsNullOrEmpty (path))
+		return path;
+	if (path.Length > top_dir.Length + 1) {
+		path = path.Substring (top_dir.Length + 1);
+	}
+	return GetHashString (path);
+};
+
 Action<TextWriter, string, string> process = new Action<TextWriter, string, string> ((TextWriter writer, string indent, string directory) =>
 {
 	var entries = Directory.GetFileSystemEntries (directory);
 	foreach (var entry in entries) {
 		var name = Path.GetFileName (entry);
+		var id = GetId (entry);
 		if (Directory.Exists (entry)) {
-			writer.WriteLine ($"{indent}  <Directory Id=\"ID_{Guid.NewGuid ().ToString ()}\" Name=\"{name}\">");
+			writer.WriteLine ($"{indent}  <Directory Id=\"{id}\" Name=\"{name}\">");
 			process (writer, indent + "  ", entry);
 			writer.WriteLine ($"{indent}  </Directory>");
 		} else {
-			var component = $"{Guid.NewGuid ().ToString ()}";
-			components.Add (component);
-			writer.WriteLine ($"{indent}  <Component Id=\"{component}\" Guid=\"*\">");
-			writer.WriteLine ($"{indent}    <File Id=\"ID_{Guid.NewGuid ().ToString ()}\" Name=\"{name}\" KeyPath=\"yes\" Source=\"{entry}\" />");
+			components.Add (id);
+			writer.WriteLine ($"{indent}  <Component Id=\"{id}\" Guid=\"*\">");
+			writer.WriteLine ($"{indent}    <File Id=\"file_{id}\" Name=\"{name}\" KeyPath=\"yes\" Source=\"{entry}\" />");
 			writer.WriteLine ($"{indent}  </Component>");
 		}
 	}
