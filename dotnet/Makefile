@@ -220,7 +220,7 @@ $(TMP_PKG_DIR)/Microsoft.$1.Bundle.$2.pkg: $(TMP_PKG_DIR)/Microsoft.$1.Workload.
 	$$(Q) mv $$@.tmp $$@
 
 # Copy the bundle package from our temporary directory to the target directory
-$(DOTNET_PKG_DIR)/Microsoft.$1.Bundle.$2.%: $(TMP_PKG_DIR)/Microsoft.$1.Bundle.$2.% | $(DOTNET_PKG_DIR)
+$(DOTNET_PKG_DIR)/%: $(TMP_PKG_DIR)/% | $(DOTNET_PKG_DIR)
 	$$(Q) $(CP) $$< $$@
 
 PACKAGE_TARGETS += $(DOTNET_PKG_DIR)/Microsoft.$1.Bundle.$2.pkg
@@ -248,7 +248,7 @@ $(TMP_PKG_DIR)/Microsoft.NET.Workload.$1.$2.wsx: ./generate-wix.csharp Makefile 
 $(TMP_PKG_DIR)/Microsoft.NET.Workload.$1.$2.msi: $(TMP_PKG_DIR)/Microsoft.NET.Workload.$1.$2.wsx .stamp-check-wixl
 	$$(Q_GEN) wixl -o "$$@" "$$<" -a x64
 
-MSI_TARGETS += $(TMP_PKG_DIR)/Microsoft.NET.Workload.$1.$2.msi
+MSI_TARGETS += $(DOTNET_PKG_DIR)/Microsoft.NET.Workload.$1.$2.msi
 endef
 $(foreach platform,$(DOTNET_PLATFORMS),$(eval $(call CreateMsi,$(platform),$($(platform)_NUGET_VERSION_NO_METADATA))))
 
