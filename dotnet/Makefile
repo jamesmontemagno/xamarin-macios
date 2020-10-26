@@ -257,7 +257,6 @@ $(foreach platform,$(DOTNET_PLATFORMS),$(eval $(call CreateMsi,$(platform),$($(p
 		echo "Installing msitools to get wixl..."; \
 		if ! brew install msitools; then \
 			if ! type wixl; then \
-				# 'brew install' may fail, yet wixl might still be installed \
 				echo "Failed to install wixl"; \
 				exit 1; \
 			fi; \
