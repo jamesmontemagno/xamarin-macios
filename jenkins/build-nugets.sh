@@ -12,3 +12,4 @@ DOTNET_PKG_DIR=$(make -C jenkins print-abspath-variable VARIABLE=DOTNET_PKG_DIR 
 make -C dotnet package -j
 cp -c "$DOTNET_PKG_DIR"/*.pkg ../package/
 cp -c "$DOTNET_PKG_DIR"/*.zip ../package/
+cp -c "$DOTNET_PKG_DIR"/*.msi ../package/
